@@ -12,7 +12,7 @@ struct ContentView: View {
     @State private var stickyNotes: [StickyNote] = [StickyNote]()
     @State private var text: String = ""
     
-    //MARK FUNCTIONS
+    // MARK: FUNCTIONS
     
     func getDocumentDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -59,6 +59,8 @@ struct ContentView: View {
         
     }
     
+    
+    // MARK: MAIN BODY
     var body: some View {
         
         NavigationStack{
@@ -73,8 +75,12 @@ struct ContentView: View {
                         guard !text.isEmpty else { return }
                         
                         let newNote = StickyNote(id: UUID(), text: text)
+                        
                         stickyNotes.append(newNote)
+                        
                         text = ""
+                        
+                        saveStickyNotes()
                     }label: {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 42, weight: .semibold))
@@ -82,7 +88,27 @@ struct ContentView: View {
                     .fixedSize()
                     .foregroundColor(.accent)
                     
+                };List{
+                    
+                    ForEach(0..<stickyNotes.count, id: \.self){
+                        i in HStack{
+                            Capsule()
+                                .frame(width: 4)
+                            
+                            Text(stickyNotes[i].text)
+                                .lineLimit(1)
+                                .padding(.leading, 5)
+                                
+                                
+                        }
+                    }.onDelete(perform: deleteStickyNotes)
+                    
                 }.navigationTitle("Sticky Notes")//HSTACK
+                    .onAppear(
+                        perform: {
+                            loadStickyNotes()
+                        }
+                    )
                 
         
             } //VSTACK
