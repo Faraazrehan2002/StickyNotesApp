@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct StickyNote {
+struct StickyNote: Codable, Identifiable {
     let id: UUID
     let text: String
 }

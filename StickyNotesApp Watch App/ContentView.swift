@@ -11,23 +11,85 @@ struct ContentView: View {
     
     @State private var stickyNotes: [StickyNote] = [StickyNote]()
     @State private var text: String = ""
-    var body: some View {
-        VStack {
-            TextField("Enter new note", text: $text)
+    
+    //MARK FUNCTIONS
+    
+    func getDocumentDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
+    
+    
+    func saveStickyNotes() {
+        let fileURL = getDocumentDirectory().appendingPathComponent("stickyNotes.json")
+        
+        do {
+            let data = try JSONEncoder().encode(stickyNotes)
+            try data.write(to: fileURL)
+        } catch {
+            print("Error saving sticky notes: \(error)")
+        }
+    }
+    
+    func loadStickyNotes() {
+        DispatchQueue.main.async{
             
-            Button{
-                guard !text.isEmpty else { return }
+            do {
                 
-                let newNote = StickyNote(id: UUID(), text: text)
-                stickyNotes.append(newNote)
-                text = ""
-            }label: {
-                Image(systemName: "plus.circle")
-                    .font(.system(size: 42, weight: .semibold))
+                let fileURL = getDocumentDirectory().appendingPathComponent("stickyNotes.json")
+                
+                let data = try Data(contentsOf: fileURL)
+                
+                stickyNotes = try JSONDecoder().decode([StickyNote].self, from: data)
+                
+            } catch {
+                
             }
-            .fixedSize()
-            .foregroundColor(.accent)
-        } //VSTACK
+            
+        }
+        
+    }
+    
+    func deleteStickyNotes(at offsets: IndexSet){
+        
+        withAnimation{
+            stickyNotes.remove(atOffsets: offsets)
+            saveStickyNotes()
+        }
+        
+    }
+    
+    var body: some View {
+        
+        NavigationStack{
+            
+            VStack {
+                
+                HStack{
+                    
+                    TextField("Enter new note", text: $text)
+                    
+                    Button{
+                        guard !text.isEmpty else { return }
+                        
+                        let newNote = StickyNote(id: UUID(), text: text)
+                        stickyNotes.append(newNote)
+                        text = ""
+                    }label: {
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 42, weight: .semibold))
+                    }
+                    .fixedSize()
+                    .foregroundColor(.accent)
+                    
+                }.navigationTitle("Sticky Notes")//HSTACK
+                
+        
+            } //VSTACK
+            
+        }//NAVIGATIONSTACK
+        
+        
     }
 }
 
